@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+
+    <style>
+        body { font-family: sans-serif; background-color: #f0f0f0; padding: 20px; }
+        h1 { color: #333; }
+        input { padding: 10px; width: 200px; }
+        button { padding: 10px; margin-left: 10px; }
+        ul { list-style-type: none; padding: 0; }
+        li { background-color: #fff; margin: 10px 0; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        li button { background-color: rgb(14, 34, 42); color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>My To-Do List</h1>
+    <input type="text" id="taskInput" placeholder="Add a new task">
+    <button onclick="addTask()">Add Task</button>
+    <ul id="todolist"></ul>
+
+    <script>
+        // Initialize tasks from localStorage
+        let tasks = JSON.parse(localStorage.getItem('tasks'));
+
+        // Function to display tasks on the page
+        function displayTasks() {
+            const list = document.getElementById('todolist');
+            list.innerHTML = ''; // Clear current view
+            
+            tasks.forEach((taskText, index) => {
+                const li = document.createElement('li');
+                li.innerText = taskText + " ";
+                
+                const btn = document.createElement('button');
+                btn.innerText = 'Delete';
+                btn.onclick = function() {
+                    deleteTask(index);
+                };
+                
+                li.appendChild(btn);
+                list.appendChild(li);
+            });
+        }
+
+        // Add a new task
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const val = taskInput.value;
+            
+            if (val !== '') {
+                tasks[tasks.length] = val; // Add to our array
+                localStorage.setItem('tasks', JSON.stringify(tasks)); 
+                taskInput.value = '';
+                displayTasks(); 
+            }
+        }
+
+        // Delete a task
+        function deleteTask(index) {
+            tasks.splice(index, 1); // Remove item from array
+            localStorage.setItem('tasks', JSON.stringify(tasks)); 
+            displayTasks(); 
+        }
+
+        // Run on page load
+        displayTasks();
+    </script>
+</body>
+</html>
