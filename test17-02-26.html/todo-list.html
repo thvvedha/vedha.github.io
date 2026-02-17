@@ -49,11 +49,11 @@
             }
         }
 
-        function deleteTask(indexToDelete) {
+        function deleteTask(index) {
             const newTasks = [];
             let counter = 0;
             for (let i = 0; i < tasks.length; i++) {
-                if (i !== indexToDelete) {
+                if (i !== index) {
                     newTasks[counter] = tasks[i];
                     counter++;
                 }
