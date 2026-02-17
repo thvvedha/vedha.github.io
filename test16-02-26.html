@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Books Data Table</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            color: #333; }
+
+        .controls { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 15px; }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 15px; }
+
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            text-align: left; }
+
+        th { 
+            background-color: #f8f9fa; 
+            cursor: pointer; 
+            position: relative; 
+            user-select: none; }
+        
+        /* Sorting Arrows */
+        th::after { 
+            content: ' ↕'; 
+            font-size: 0.8em; 
+            color: #ccc; }
+
+        th.asc::after { 
+            content: ' ↑'; 
+            color: black; }
+
+        th.desc::after { 
+            content: ' ↓'; 
+            color: black; }
+
+        .pagination { 
+            display: flex; 
+            gap: 5px; 
+            justify-content: center; }
+
+        button { 
+            padding: 5px 10px; 
+            cursor: pointer; 
+            border: 1px solid #ddd; 
+            background: white; }
+
+        button.active { 
+            background-color: #007bff; 
+            color: white; 
+            border-color: #007bff; }
+
+        button:disabled { 
+            cursor: not-allowed; 
+            opacity: 0.5; }
+
+        input { 
+            padding: 6px; 
+            width: 250px; }
+            
+    </style>
+</head>
+<body>
+
+    <h2>Book Repository</h2>
+
+    <div class="controls">
+        <div>Show <select id="entriesSelect" onchange="changeRowsPerPage(this.value)">
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+        </select> entries</div>
+        <div>
+            Search: <input type="text" id="searchInput" placeholder="Search title or author...">
+        </div>
+    </div>
+
+    <table id="booksTable">
+        <thead>
+            <tr id="headerRow"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <div class="pagination" id="pagination"></div>
+
+    <script>
+        let allBooks = [];
+        let filteredBooks = [];
+        let currentPage = 1;
+        let rowsPerPage = 10; 
+        let sortCol = null;
+        let sortAsc = true;
+
+        const tableBody = document.getElementById('tableBody');
+        const headerRow = document.getElementById('headerRow');
+        const pagination = document.getElementById('pagination');
+        const searchInput = document.getElementById('searchInput');
+
+        async function fetchData() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/edupoly/mongodb-data-sets/main/books.json');
+                allBooks = await response.json();
+                
+                //Table Headers
+                const keys = ['title', 'isbn', 'authors', 'pageCount', 'status', 'price', 'categories', 'thumbnailUrl'];
+                keys.forEach(key => {
+                    const th = document.createElement('th');
+                    th.textContent = key.toUpperCase();
+                    th.addEventListener('click', () => handleSort(key, th));
+                    headerRow.appendChild(th);
+                });
+
+                filteredBooks = [...allBooks];
+                renderTable();
+            } catch (err) {
+                console.error("Error loading data:", err);
+            }
+        }
+
+        //Search
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            filteredBooks = allBooks.filter(book => {
+                const titleMatch = book.title?.toLowerCase().includes(query);
+                const isbnMatch = book.isbn?.toLowerCase().includes(query);
+                const authorMatch = book.authors?.some(a => a.toLowerCase().includes(query));
+                return titleMatch || isbnMatch || authorMatch;
+            });
+            currentPage = 1;
+            renderTable();
+        });
+
+        //Sorting
+        function handleSort(column, thElement) {
+            if (sortCol === column) {
+                sortAsc = !sortAsc;
+            } else {
+                sortCol = column;
+                sortAsc = true;
+            }
+
+            document.querySelectorAll('th').forEach(el => el.className = '');
+            thElement.className = sortAsc ? 'asc' : 'desc';
+
+            filteredBooks.sort((a, b) => {
+                let valA = a[column] || '';
+                let valB = b[column] || '';
+                
+                // Handle array comparison for authors
+                if (Array.isArray(valA)) valA = valA.join(', ');
+                if (Array.isArray(valB)) valB = valB.join(', ');
+
+                if (valA < valB) return sortAsc ? -1 : 1;
+                if (valA > valB) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginatedItems = filteredBooks.slice(start, end);
+
+            paginatedItems.forEach(book => {
+                const row = `<tr>
+                    <td>${book.title || 'N/A'}</td>
+                    <td>${book.isbn || 'N/A'}</td>
+                    <td>${Array.isArray(book.authors) ? book.authors.join(', ') : 'N/A'}</td>
+                    <td>${book.pageCount || 0}</td>
+                    <td>${book.status || 'N/A'}</td>
+                    <td>${book.price ? '$' + book.price : 'N/A'}</td>
+                    <td>${Array.isArray(book.categories) ? book.categories.join(', ') : 'N/A'}</td>
+                    <td><img src="${book.thumbnailUrl}" width="30" onerror="this.src='https://via.placeholder.com/30'"></td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            pagination.innerHTML = '';
+            const pageCount = Math.ceil(filteredBooks.length / rowsPerPage);
+            
+            // Show a all window of pages
+            for (let i = 1; i <= pageCount; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = (i === currentPage) ? 'active' : '';
+                btn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                });
+                pagination.appendChild(btn);
+            }
+        }
+
+        //change rows per page
+        function changeRowsPerPage(value) {
+            rowsPerPage = parseInt(value);
+            currentPage = 1;
+            renderTable();
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
