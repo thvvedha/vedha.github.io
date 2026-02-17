@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <style>
+        :root { --bg: #0f172a; --text: #f8fafc; --accent: #38bdf8; --secondary: #1e293b; }
+        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; }
+        .container { background: var(--secondary); padding: 3rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 500px; width: 90%; }
+        .links { margin-top: 2rem; display: flex; flex-direction: column; gap: 10px; }
+        .btn { text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; transition: 0.3s; display: block; color: white; }
+        .github { background-color: #333; }
+        .linkedin { background-color: #0077b5; }
+        .activity-btn { background-color: var(--accent); color: #0f172a; margin-top: 10px; }
+        .btn:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hi, I'm VEDHA CHOWDHARY 👋</h1>
+        <p>Software Developer & Tech Enthusiast</p>
+        
+        <div class="links">
+            <a href="https://github.com/thvvedha/vedha.github.io" target="_blank" class="btn github">GitHub</a>
+            <a href="https://www.linkedin.com/in/vedha-chowdhary-sreeramineni-17b4783ab/" target="_blank" class="btn linkedin">LinkedIn</a>
+            <hr style="border: 0.5px solid #475569; width: 100%; margin: 10px 0;">
+            <a href="activities.html" class="btn activity-btn">View My Activities →</a>
+        </div>
+    </div>
+</body>
+</html>
