@@ -48,7 +48,24 @@
                 displayTasks(); 
             }
         }
-        
+
+        function deleteTask(indexToDelete) {
+            const newTasks = [];
+            let counter = 0;
+
+            // Manually rebuild the array without the unwanted item
+            // This replaces the .filter() or .splice() methods
+            for (let i = 0; i < tasks.length; i++) {
+                if (i !== indexToDelete) {
+                    newTasks[counter] = tasks[i];
+                    counter++;
+                }
+            }
+            
+            tasks = newTasks;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+        }
         displayTasks();
     </script>
 </body>
