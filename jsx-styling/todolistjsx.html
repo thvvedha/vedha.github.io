@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent React Multi-List</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-4 md:p-12">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            // 1. INITIALIZE STATE FROM LOCALSTORAGE
+            const [lists, setLists] = useState(() => {
+                const saved = localStorage.getItem("my-todo-lists");
+                return saved ? JSON.parse(saved) : { "General": [] };
+            });
+            const [newListTitle, setNewListTitle] = useState("");
+
+            // 2. SAVE TO LOCALSTORAGE ON EVERY CHANGE
+            useEffect(() => {
+                localStorage.setItem("my-todo-lists", JSON.stringify(lists));
+            }, [lists]);
+
+            const addList = (e) => {
+                e.preventDefault();
+                if (!newListTitle.trim() || lists[newListTitle]) return;
+                setLists({ ...lists, [newListTitle]: [] });
+                setNewListTitle("");
+            };
+
+            const deleteList = (listKey) => {
+                const newLists = { ...lists };
+                delete newLists[listKey];
+                setLists(newLists);
+            };
+
+            const addTask = (listKey, text) => {
+                const newTask = { id: Date.now(), text, completed: false };
+                setLists({ ...lists, [listKey]: [...lists[listKey], newTask] });
+            };
+
+            const deleteTask = (listKey, taskId) => {
+                setLists({
+                    ...lists,
+                    [listKey]: lists[listKey].filter(t => t.id !== taskId)
+                });
+            };
+
+            const toggleTask = (listKey, taskId) => {
+                setLists({
+                    ...lists,
+                    [listKey]: lists[listKey].map(t => 
+                        t.id === taskId ? { ...t, completed: !t.completed } : t
+                    )
+                });
+            };
+
+            return (
+                <div class="max-w-6xl mx-auto">
+                    <header class="mb-10 text-center">
+                        <h1 class="text-3xl font-extrabold text-slate-800 mb-6">Task Boards</h1>
+                        <form onSubmit={addList} class="flex flex-col sm:flex-row justify-center gap-3">
+                            <input 
+                                type="text" 
+                                value={newListTitle}
+                                onChange={(e) => setNewListTitle(e.target.value)}
+                                placeholder="New Board Name (e.g. Work)"
+                                class="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                            />
+                            <button class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
+                                + Add Board
+                            </button>
+                        </form>
+                    </header>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {Object.keys(lists).map(listKey => (
+                            <ToDoList 
+                                key={listKey} 
+                                title={listKey} 
+                                tasks={lists[listKey]} 
+                                onAddTask={(text) => addTask(listKey, text)}
+                                onToggle={(id) => toggleTask(listKey, id)}
+                                onDeleteTask={(id) => deleteTask(listKey, id)}
+                                onDeleteList={() => deleteList(listKey)}
+                            />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function ToDoList({ title, tasks, onAddTask, onToggle, onDeleteTask, onDeleteList }) {
+            const [input, setInput] = useState("");
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!input.trim()) return;
+                onAddTask(input);
+                setInput("");
+            };
+
+            return (
+                <div class="bg-white rounded-xl shadow-lg border-l-8 border-indigo-500 overflow-hidden flex flex-col">
+                    <div class="p-4 bg-slate-100 flex justify-between items-center border-b">
+                        <h2 class="font-bold text-slate-700 truncate mr-2">{title}</h2>
+                        <button 
+                            onClick={onDeleteList}
+                            class="text-xs text-red-400 hover:text-red-600 font-semibold underline"
+                        >
+                            Delete Board
+                        </button>
+                    </div>
+                    
+                    <div class="p-5 flex-1">
+                        <form onSubmit={handleSubmit} class="mb-5 flex gap-2">
+                            <input 
+                                type="text" 
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Add task..."
+                                class="flex-1 bg-transparent border-b-2 border-slate-200 focus:border-indigo-500 outline-none pb-1"
+                            />
+                        </form>
+
+                        <ul class="space-y-3">
+                            {tasks.map(task => (
+                                <li key={task.id} class="group flex items-center justify-between bg-slate-50 p-3 rounded-lg hover:bg-slate-100 transition">
+                                    <div 
+                                        onClick={() => onToggle(task.id)}
+                                        class={`flex-1 cursor-pointer ${task.completed ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}`}
+                                    >
+                                        {task.text}
+                                    </div>
+                                    <button 
+                                        onClick={() => onDeleteTask(task.id)}
+                                        class="ml-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+                                        title="Delete Task"
+                                    >
+                                        &times;
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const idols = [
+            { Name: "Jungkook", Age: 27, City: "Seoul", Group: "BTS" },
+            { Name: "Jennie", Age: 28, City: "Seoul", Group: "BLACKPINK" },
+            { Name: "V", Age: 28, City: "Seoul", Group: "BTS" },
+            { Name: "Jisoo", Age: 29, City: "Seoul", Group: "BLACKPINK" },
+            { Name: "J-Hope", Age: 30, City: "Seoul", Group: "BTS" },
+            { Name: "Lisa", Age: 27, City: "Bangkok", Group: "BLACKPINK" },
+            { Name: "Rosé", Age: 27, City: "Auckland", Group: "BLACKPINK" },
+            { Name: "Suga", Age: 31, City: "Seoul", Group: "BTS" },
+            { Name: "RM", Age: 29, City: "Seoul", Group: "BTS" },
+            { Name: "Hanni", Age: 23, City: "Seoul", Group: "NewJeans" },
+            { Name: "Heeseung", Age: 20, City: "Seoul", Group: "ENHYPEN" },
+            { Name: "Sakura", Age: 26, City: "Tokyo", Group: "LE SSERAFIM" }
+        ];
+        function DisplayProperties() {
+            return (
+                <div>
+                    <h1>Object Properties</h1>
+                    <ul>
+                        {idols.map((idol, index) => (
+                            <li key={index}>
+                                <strong>{idol.Name}</strong> - Age: {idol.Age}, City: {idol.City}, Group: {idol.Group}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<DisplayProperties />, document.getElementById('root'));
+    </script>
+</body>
+</html>

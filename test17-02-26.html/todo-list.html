@@ -4,45 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do List</title>
-
+    <style>
+        .completed {
+            text-decoration: line-through;
+            color: gray;
+        }
+        li { margin-bottom: 8px; list-style: none; display: flex; align-items: center; }
+        input[type="checkbox"] { margin-right: 10px; cursor: pointer; }
+        button { margin-left: 10px; cursor: pointer; }
+    </style>
 </head>
 <body>
     <h1>My To-Do List</h1>
+    
     <input type="text" id="taskInput" placeholder="Add a new task">
     <button onclick="addTask()">Add Task</button>
+    
     <ul id="todolist"></ul>
 
     <script>
-        // Initialize tasks from localStorage
-        let tasks = JSON.parse(window.localStorage.getItem('tasks'));
+        let tasks = JSON.parse(window.localStorage.getItem('tasks')) || [];
 
-        // Function to display tasks on the page
         function displayTasks() {
             const list = document.getElementById('todolist');
-            list.innerHTML = ''; // Clear current view
-            
-            tasks.forEach((taskText, index) => {
+            list.innerHTML = ''; 
+
+            for (let i = 0; i < tasks.length; i++) {
                 const li = document.createElement('li');
-                li.innerText = taskText + " ";
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                
+                checkbox.checked = tasks[i].completed;
+                
+                const taskSpan = document.createElement('span');
+                taskSpan.innerText = tasks[i].text;
+
+                if (tasks[i].completed) {
+                    taskSpan.classList.add('completed');
+                }
+
+                checkbox.onchange = function() {
+                    tasks[i].completed = checkbox.checked;
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+
+                    if (checkbox.checked) {
+                        taskSpan.classList.add('completed');
+                    } else {
+                        taskSpan.classList.remove('completed');
+                    }
+                };
                 
                 const btn = document.createElement('button');
                 btn.innerText = 'Delete';
                 btn.onclick = function() {
-                    deleteTask(index);
+                    deleteTask(i);
                 };
                 
+                li.appendChild(checkbox);
+                li.appendChild(taskSpan);
                 li.appendChild(btn);
                 list.appendChild(li);
-            });
+            }
         }
 
-        // Add a new task
         function addTask() {
             const taskInput = document.getElementById('taskInput');
-            const val = taskInput.value;
+            const val = taskInput.value.trim();
             
             if (val !== '') {
-                tasks[tasks.length] = val; // Add to our array
+                tasks[tasks.length] = { text: val, completed: false }; 
                 localStorage.setItem('tasks', JSON.stringify(tasks)); 
                 taskInput.value = '';
                 displayTasks(); 
@@ -50,19 +81,22 @@
         }
 
         function deleteTask(index) {
-            const newTasks = [];
-            let counter = 0;
-            for (let i = 0; i < tasks.length; i++) {
-                if (i !== index) {
-                    newTasks[counter] = tasks[i];
-                    counter++;
+            const agreed = confirm("Are you sure you want to delete this?");
+            if (agreed) {
+                const newTasks = [];
+                let counter = 0;
+                for (let i = 0; i < tasks.length; i++) {
+                    if (i !== index) {
+                        newTasks[counter] = tasks[i];
+                        counter++;
+                    }
                 }
-            }
-            
-            tasks = newTasks;
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            displayTasks();
+                tasks = newTasks;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                displayTasks();
+            }   
         }
+
         displayTasks();
     </script>
 </body>
